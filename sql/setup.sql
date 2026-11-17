@@ -43,7 +43,7 @@ revoke all on all tables in schema private from public, anon, authenticated;
 
 -- Initial login: username cjlakc. The password itself is not present in this SQL.
 insert into private.admin_users(username, password_hash)
-values ('cjlakc', '$2y$12$lD2Kx1FZ5ngkY/E8FLN8Fe7VlPBf8UxNVs1imcau.JPf6bLq9LzQe')
+values ('cjlakc', '$2a$12$lD2Kx1FZ5ngkY/E8FLN8Fe7VlPBf8UxNVs1imcau.JPf6bLq9LzQe')
 on conflict (username) do nothing;
 
 create or replace function private.is_admin_session(p_token text)
