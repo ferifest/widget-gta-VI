@@ -1,27 +1,82 @@
 # WANTED CONTROL
 
-Private control panel for interactive wanted-level OBS overlays.
+Панель для создания и управления независимыми интерактивными HUD-виджетами Wanted Level для OBS Studio.
 
-## Quick setup
+## Возможности
 
-1. Create a Supabase project.
-2. Run [sql/setup.sql](sql/setup.sql) in the Supabase SQL Editor.
-3. In GitHub open **Settings → Secrets and variables → Actions**:
-   - Repository variable: `VITE_SUPABASE_URL` — the Supabase project URL.
-   - Repository secret: `VITE_SUPABASE_PUBLISHABLE_KEY` — the Publishable/anon key.
-4. Open **Settings → Pages** and select **GitHub Actions** as the deployment source.
-5. Push to `main` or run the **Build and deploy site** workflow.
+- Закрытый вход администратора: логин `cjlakc`, bcrypt-хеш пароля в базе данных.
+- Создание, переименование, просмотр, удаление и отзыв отдельного OBS-токена каждого профиля.
+- Отдельное состояние уровня 0–5 для каждого виджета.
+- Управление `+1 STAR`, `-1 STAR`, `RESET` и быстрый выбор 0–5.
+- Настройки профиля: масштаб звёзд, расстояние, цвета активных и пустых звёзд, цвет контура, выравнивание, ширина и высота холста, свечение, анимации и вспышка 5/5.
+- Прозрачная страница OBS без элементов управления.
+- Supabase PostgreSQL для постоянного состояния и Realtime Broadcast для синхронизации между устройствами.
+- Резервное чтение состояния из базы и восстановление после перезагрузки.
+- Сборка и публикация через GitHub Actions на GitHub Pages.
 
-The application source is in [widget-source.zip](widget-source.zip). It contains the Vite project, database setup instructions, styles and client code. The workflow extracts it and publishes the built site.
+## 1. Подключить Supabase
 
-The initial administrator username is `cjlakc`. The initial password is supplied separately; it is not stored in plaintext in this repository. Change it from **Account Security** after the first login.
+1. Создайте проект на [supabase.com](https://supabase.com/).
+2. Откройте **SQL Editor**.
+3. Выполните целиком [sql/setup.sql](sql/setup.sql).
+4. В **Project Settings → API** скопируйте Project URL и Publishable key (либо legacy anon key).
 
-The Supabase `service_role` key must never be added to Actions variables or frontend code. Only the Publishable/anon key is used in the browser.
+Не используйте `service_role` key в браузере или в переменных frontend-сборки. Скрипт использует только Publishable/anon key.
 
-The published address follows this pattern:
+SQL создаёт начальную учётную запись администратора `cjlakc`. Пароль передан отдельно и не хранится в репозитории открытым текстом. После первого входа смените пароль в разделе **Безопасность аккаунта**. Новый пароль должен быть длиной не менее 16 символов.
+
+## 2. Добавить настройки GitHub Actions
+
+Откройте репозиторий → **Settings → Secrets and variables → Actions**.
+
+Добавьте Repository variable:
+
+- `VITE_SUPABASE_URL` — Project URL Supabase.
+
+Добавьте Repository secret:
+
+- `VITE_SUPABASE_PUBLISHABLE_KEY` — Publishable key (или anon key).
+
+Далее откройте **Settings → Pages** и выберите **GitHub Actions** как источник публикации.
+
+Workflow `.github/workflows/pages.yml` создаёт runtime-файл `config.js` при сборке. Значения ключа не добавляются в исходный код репозитория. Публикация завершится ошибкой до добавления обеих настроек — это сделано намеренно, чтобы не развернуть неработающую страницу.
+
+## 3. Запустить сайт
+
+После добавления переменной и секрета откройте **Actions → Publish WANTED CONTROL → Run workflow** или отправьте новый commit в ветку `main`.
+
+Адрес GitHub Pages:
 
 ```
 https://YOUR_GITHUB_ACCOUNT.github.io/widget-gta-VI/
 ```
 
-From the dashboard, create a widget profile and copy its OBS Display URL. Open the main site on a second device to control that same profile.
+## 4. Создать OBS-виджет
+
+1. Войдите с логином `cjlakc` и выданным отдельно паролем.
+2. На главной панели создайте профиль, например «Основной эфир».
+3. Откройте его профиль: здесь находятся все функции управления и настройки.
+4. Скопируйте **OBS Display URL**.
+5. В OBS Studio добавьте **Sources → + → Browser** и вставьте ссылку.
+6. Начальный размер источника — 600 × 120. При изменении размера холста выставьте соответствующие значения в OBS.
+
+OBS URL — отдельный случайный 256-битный ключ только для чтения состояния виджета. Он не даёт права управлять уровнем или настройками. При ротации ключа предыдущая ссылка перестанет работать.
+
+## 5. Управление со второго устройства
+
+Откройте главный адрес сайта на другом компьютере или телефоне и войдите в ту же администраторскую панель. Выберите нужный профиль. Устройства могут находиться в разных сетях: OBS и панель используют один Supabase-проект и обмениваются обновлениями через Realtime.
+
+## Безопасность
+
+- Пароль администратора хранится в PostgreSQL в виде bcrypt-хеша.
+- При входе создаётся случайная сессия на 21 день; в URL сессия не передаётся.
+- После 7 последовательных неудачных попыток вход блокируется на 15 минут.
+- Таблицы закрыты от прямого доступа через публичный API; изменения разрешены только через RPC-функции с проверкой сессии.
+- Публичный OBS-токен имеет только разрешение на чтение отображаемого состояния.
+- Ключ `service_role` никогда не должен попадать в браузер, GitHub Actions variables или исходники.
+
+## Структура
+
+- `index.html` — клиентское приложение и OBS Display.
+- `sql/setup.sql` — таблицы, права доступа и защищённые RPC-функции.
+- `.github/workflows/pages.yml` — проверка конфигурации и публикация GitHub Pages.
