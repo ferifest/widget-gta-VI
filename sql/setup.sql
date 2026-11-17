@@ -301,15 +301,15 @@ revoke all on function public.admin_rotate_display_token(text,uuid) from public,
 revoke all on function public.admin_delete_widget(text,uuid) from public,anon,authenticated;
 revoke all on function public.get_display_state(text) from public,anon,authenticated;
 
-grant execute on function public.admin_login(text,text) to anon,authenticated;
-grant execute on function public.admin_validate_session(text) to anon,authenticated;
-grant execute on function public.admin_logout(text) to anon,authenticated;
-grant execute on function public.admin_change_password(text,text,text) to anon,authenticated;
-grant execute on function public.admin_list_widgets(text) to anon,authenticated;
-grant execute on function public.admin_create_widget(text,text) to anon,authenticated;
-grant execute on function public.admin_get_widget(text,uuid) to anon,authenticated;
-grant execute on function public.admin_change_level(text,uuid,text,integer) to anon,authenticated;
-grant execute on function public.admin_save_widget(text,uuid,text,jsonb) to anon,authenticated;
-grant execute on function public.admin_rotate_display_token(text,uuid) to anon,authenticated;
-grant execute on function public.admin_delete_widget(text,uuid) to anon,authenticated;
-grant execute on function public.get_display_state(text) to anon,authenticated;
+grant execute on function public.admin_login(text,text) to anon;
+grant execute on function public.admin_validate_session(text) to anon;
+grant execute on function public.admin_logout(text) to anon;
+grant execute on function public.admin_change_password(text,text,text) to anon;
+grant execute on function public.admin_list_widgets(text) to anon;
+grant execute on function public.admin_create_widget(text,text) to anon;
+grant execute on function public.admin_get_widget(text,uuid) to anon;
+grant execute on function public.admin_change_level(text,uuid,text,integer) to anon;
+grant execute on function public.admin_save_widget(text,uuid,text,jsonb) to anon;
+grant execute on function public.admin_rotate_display_token(text,uuid) to anon;
+grant execute on function public.admin_delete_widget(text,uuid) to anon;
+grant execute on function public.get_display_state(text) to anon;
